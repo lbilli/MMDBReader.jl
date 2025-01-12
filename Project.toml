@@ -1,0 +1,12 @@
+name = "MMDBReader"
+uuid = "4c5cf831-35c2-441b-a5dd-ee452fb79f0e"
+authors = ["Luca Billi <noreply.section+dev@gmail.com>"]
+version = "0.1.0"
+
+[deps]
+Dates = "ade2ca70-3891-5945-98fb-dc099432e06a"
+Mmap = "a63ad114-7e13-5084-954f-fe012c677804"
+Sockets = "6462fe0b-24de-5631-8697-dd941f90decc"
+
+[compat]
+julia = "1.11"
