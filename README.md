@@ -3,7 +3,7 @@
 *A MaxMind DB reader in Julia*
 
 [MaxMind DB](https://maxmind.github.io/MaxMind-DB/) binary files store data
-indexed by IB address subnets.
+indexed by IP address subnets.
 
 This package implements version 2 of the format and it can handle both
 IPv4 or IPv6 databases with record sizes of 24, 28 or 32 bits.
@@ -18,10 +18,9 @@ To install from GitHub:
 To look up an IP address in a database:
 ```julia
 using MMDBReader: MMDBReader as MM
-using Sockets
 
-filename = "/path/to/file.db"
-ip = ip"x.x.x.x" or ip"x:x:x:x"
+filename = "/path/to/file.mmdb"
+ip = "8.8.8.8" or "2001:4860:4860::8888"
 
 # Load a database file
 db = MM.loaddb(filename)
@@ -54,6 +53,4 @@ according to the following table:
 | boolean | `Bool` |
 | float | `Float32` |
 
-[^1]: `eltype` can be stricter than `Any` if possible
-
-
+[^1]: `eltype` can be stricter than `Any` if possible.
