@@ -1,7 +1,7 @@
-[testdb]
-git-tree-sha1 = "127e7e38077d503421d963fb9cb857d48b6113bb"
+[maxmind-db]
+git-tree-sha1 = "8d04d59f684d1209befa575354110eea612cb8b8"
 lazy = true
 
-  [[testdb.download]]
-  url = "https://github.com/maxmind/MaxMind-DB/archive/1ca40fb.tar.gz"
-  sha256 = "2efbb847565d43450a31d07a00491573b6b593b43365e08270e168fc72dbffab"
+  [[maxmind-db.download]]
+  url = "https://github.com/maxmind/MaxMind-DB/archive/3f9f0b7.tar.gz"
+  sha256 = "105bf34215d63b3c645cce7df23997630fab166179d01a37959f04b8e67e870f"

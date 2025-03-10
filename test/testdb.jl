@@ -16,18 +16,18 @@ function verify(db, js)
 
     ip, m = split(String(ipm), '/')
 
-    m = parse(Int, m)
+    m = parse(UInt8, m)
 
     d, p = MM.lookup(db, ip)
 
-    @test p == m
+    @test p === m
 
     @test compare(d, data)
   end
 
 end
 
-path = only(readdir(artifact"testdb", join=true))
+path = only(readdir(artifact"maxmind-db", join=true))
 
 sdata, tdata = joinpath.(path, ("source", "test") .* "-data")
 
@@ -46,7 +46,7 @@ sdata, tdata = joinpath.(path, ("source", "test") .* "-data")
                          #"Static-IP-Score",
                          #"User-Count"]
 
-  files2 = "GeoLite2-" .* [ #"ASN",
+  files2 = "GeoLite2-" .* [#"ASN",
                            "City",
                            "Country"]
 
@@ -158,13 +158,20 @@ jstxt = """
               { "::2:0:0/122"       : { "ip" : "::2:0:0"    } },
               { "::2:0:40/124"      : { "ip" : "::2:0:40"   } },
               { "::2:0:50/125"      : { "ip" : "::2:0:50"   } },
-              { "::2:0:58/127"      : { "ip" : "::2:0:58"   } } ]}
+              { "::2:0:58/127"      : { "ip" : "::2:0:58"   } } ],
+
+  "string" : [ { "1.1.1.1/32"        : "1.1.1.1/32"  },
+               { "1.1.1.2/31"        : "1.1.1.2/31"  },
+               { "1.1.1.4/30"        : "1.1.1.4/30"  },
+               { "1.1.1.8/29"        : "1.1.1.8/29"  },
+               { "1.1.1.16/28"       : "1.1.1.16/28" },
+               { "1.1.1.32/32"       : "1.1.1.32/32" } ] }
 """
+
+js = JSON3.read(jstxt)
 
 
 @testset "MaxMind DB" begin
-
-  js = JSON3.read(jstxt)
 
   for ip ∈ ("ipv4", "ipv6", "mixed"), rs ∈ UInt16.((24, 28, 32))
 
@@ -172,8 +179,35 @@ jstxt = """
 
     @test typeof(db) === MM.DB{rs}
 
-    @test db.ip == (ip == "ipv4" ? 4 : 6)
+    @test db.ip === (ip == "ipv4" ? 0x0004 : 0x0006)
 
     verify(db, js[ip])
+  end
+
+  db = MM.loaddb(joinpath(tdata, "MaxMind-DB-string-value-entries.mmdb"), true)
+
+  @test typeof(db) === MM.DB{UInt16(24)}
+
+  @test db.ip === 0x0004
+
+  verify(db, js["string"])
+end
+
+
+@testset "Traverse DB" begin
+
+  for ip ∈ ("ipv4", "ipv6"), rs ∈ UInt16.((24, 28, 32))
+
+    db = MM.loaddb(joinpath(tdata, "MaxMind-DB-test-$(ip)-$(rs).mmdb"), true)
+
+    IP = ip == "ipv4" ? IPv4 : IPv6
+
+    for (v, w) ∈ zip(js[ip], MM.traversetree(db))
+
+      ip, m = split(String(first(only(v))), '/')
+
+      @test parse(IP, ip) === IP(w[1])
+      @test parse(UInt8, m) === w[2]
+    end
   end
 end

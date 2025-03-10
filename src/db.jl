@@ -60,6 +60,8 @@ function loaddb(file, inmemory)
 
   ip = meta["ip_version"]
 
+  ip ∈ (0x004, 0x006) || error("loaddb(): unsupported IP version $ip")
+
   nodeCount = meta["node_count"]
 
   searchTreeSize = nodeCount * recordSize >> 2 # = 1 / 4
@@ -77,7 +79,7 @@ function loaddb(file, inmemory)
   mark(data) == dataSeek || error("loaddb(): wrong mark")
 
   # Find IPv4 node start
-  ipv4Start = zero(UInt32)
+  ipv4Start = zero(nodeCount)
 
   if ip == 0x0006
 
@@ -89,7 +91,7 @@ function loaddb(file, inmemory)
 
     # Check alternatives
     # i) ::ffff:0:0/96
-    node = zero(UInt32)
+    node = zero(nodeCount)
 
     for i ∈ 1:96
       node < nodeCount || break
@@ -98,7 +100,7 @@ function loaddb(file, inmemory)
     end
 
     # ii) 2002::/16
-    node2 = zero(UInt32)
+    node2 = zero(nodeCount)
 
     for i ∈ 1:16
       node2 < nodeCount || break
@@ -134,9 +136,9 @@ function lookup(db, ip::IPAddr)
   db.ip == 0x0006 || ip isa IPv4 ||
     error("lookup(): no IPv6 addresses in a IPv4 database")
 
-  node = ip isa IPv4 ? db.ipv4Start : zero(UInt32)
+  node = ip isa IPv4 ? db.ipv4Start : zero(db.ipv4Start)
 
-  node, prefix = traversetree(db, node, ip.host)
+  node, prefix = findintree(db, node, ip.host)
 
   if node > db.nodeCount
 
@@ -156,9 +158,9 @@ function lookup(db, ip::IPAddr)
 end
 
 
-function traversetree(db, node, ip)
+function findintree(db, node, ip)
 
-  prefix = 0
+  prefix = 0x00
 
   for i ∈ 8(sizeof(ip) - 1):-8:0
 
@@ -168,7 +170,7 @@ function traversetree(db, node, ip)
 
       node < db.nodeCount || return node, prefix
 
-      prefix += 1
+      prefix += 0x01
 
       node = nodeval(db, node, !iszero(u8 & mask))
     end
